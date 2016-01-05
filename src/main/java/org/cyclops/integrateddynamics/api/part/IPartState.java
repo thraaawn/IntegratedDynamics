@@ -70,18 +70,18 @@ public interface IPartState<P extends IPartType> {
     public boolean isUpdateAndReset();
 
     /**
-     * Get the properties for the given aspect.
-     * This will only retrieve the already saved properties, so this could be null if not set before.
+     * Get the PROPERTY for the given aspect.
+     * This will only retrieve the already saved PROPERTY, so this could be null if not set before.
      * It is better to call the {@link IAspect#getProperties(IPartType, PartTarget, IPartState)} method instead.
-     * @param aspect The aspect to get the properties from.
-     * @return The properties, this can be null if still the default.
+     * @param aspect The aspect to get the PROPERTY from.
+     * @return The PROPERTY, this can be null if still the default.
      */
     public IAspectProperties getAspectProperties(IAspect aspect);
 
     /**
-     * Set the properties for the given aspect.
-     * @param aspect The aspect to get the properties from.
-     * @param properties The properties, this can be null if still the default.
+     * Set the PROPERTY for the given aspect.
+     * @param aspect The aspect to get the PROPERTY from.
+     * @param properties The PROPERTY, this can be null if still the default.
      */
     public void setAspectProperties(IAspect aspect, IAspectProperties properties);
 

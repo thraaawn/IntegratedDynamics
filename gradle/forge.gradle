@@ -5,10 +5,14 @@ repositories {
         name "RubensWorks FS"
         url "http://maven.rubensworks.net/"
     }
+    maven {
+        name "Amadornes"
+        url "http://maven.amadornes.com/"
+    }
 }
 
 dependencies {
-    // Add something like 'cyclopscore_version_local=0.1.0-DEV' to your gradle.properties if you want to use a custom local CyclopsCore version.
+    // Add something like 'cyclopscore_version_local=0.1.0-DEV' to your gradle.PROPERTY if you want to use a custom local CyclopsCore version.
     if(project.hasProperty("cyclopscore_version_local")) {
         compile "org.cyclops.cyclopscore:CyclopsCore:${config.minecraft_version}-${project.cyclopscore_version_local}:deobf"
     } else {
@@ -18,6 +22,8 @@ dependencies {
     // Project lombok
     compile "org.projectlombok:lombok:1.16.4"
     testCompile "junit:junit:4.12"
+
+    compile "MCMultiPart:MCMultiPart:${config.mcmultipart_version}:deobf"
 }
 
 minecraft {

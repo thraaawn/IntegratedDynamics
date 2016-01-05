@@ -16,6 +16,7 @@ import org.cyclops.cyclopscore.helper.BlockHelpers;
 import org.cyclops.cyclopscore.helper.RenderHelpers;
 import org.cyclops.integrateddynamics.api.part.IPartType;
 import org.cyclops.integrateddynamics.block.BlockCable;
+import org.cyclops.integrateddynamics.modcompat.mcmultipart.CableModelPartComponent;
 
 import java.util.List;
 
@@ -36,6 +37,7 @@ public class CableModel extends DynamicModel {
     private static final IPartType.RenderPosition CABLE_RENDERPOSITION = new IPartType.RenderPosition(
             (((float) TEXTURE_SIZE - (float) RADIUS) / 2 / (float) TEXTURE_SIZE),
             (float) RADIUS / (float) TEXTURE_SIZE, (float) RADIUS / (float) TEXTURE_SIZE);
+    private static final CableModelPartComponent CABLE_MODEL_PART_COMPONENT = new CableModelPartComponent();
 
     private final float[][][] quadVertexes = makeQuadVertexes(MIN, MAX, 1.00F);
 
@@ -90,6 +92,7 @@ public class CableModel extends DynamicModel {
 
     public List<BakedQuad> getFacadeQuads(IBlockState blockState, EnumFacing side, IPartType.RenderPosition renderPosition) {
         List<BakedQuad> ret = Lists.newLinkedList();
+        CABLE_MODEL_PART_COMPONENT.addFaceQuads(this.getState(), ret, side);
         IBakedModel model = RenderHelpers.getBakedModel(blockState);
         TextureAtlasSprite texture = model.getParticleTexture();
         if(renderPosition == IPartType.RenderPosition.NONE) {
@@ -137,6 +140,7 @@ public class CableModel extends DynamicModel {
     @Override
     public List<BakedQuad> getGeneralQuads() {
         List<BakedQuad> ret = Lists.newLinkedList();
+        CABLE_MODEL_PART_COMPONENT.addGeneralQuads(this.getState(), ret);
         TextureAtlasSprite texture = getParticleTexture();
         boolean realCable = isItemStack() || BlockHelpers.getSafeBlockStateProperty(getState(), BlockCable.REALCABLE, true);
 

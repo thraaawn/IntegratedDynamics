@@ -51,51 +51,51 @@ public interface IAspect<V extends IValue, T extends IValueType<V>> {
     public <P extends IPartType<P, S>, S extends IPartState<P>> void update(IPartNetwork network, P partType, PartTarget target, S state);
 
     /**
-     * @return If this aspect supports additional properties.
+     * @return If this aspect supports additional PROPERTY.
      * @param <P> The part type type
      * @param <S> The part state type
      */
     public <P extends IPartType<P, S>, S extends IPartState<P>> boolean hasProperties();
 
     /**
-     * Get the current properties of this aspect in the given part.
+     * Get the current PROPERTY of this aspect in the given part.
      * * @param network The network to update in.
      * @param <P> The part type type.
      * @param <S> The part state.
      * @param partType The part type.
      * @param target The position that is targeted by the given part.
      * @param state The current state of the given part.
-     * @return The current properties.
+     * @return The current PROPERTY.
      */
     public <P extends IPartType<P, S>, S extends IPartState<P>> IAspectProperties getProperties(P partType, PartTarget target, S state);
 
     /**
-     * Set the new properties of this aspect in the given part.
+     * Set the new PROPERTY of this aspect in the given part.
      * @param <P> The part type type.
      * @param <S> The part state.
      * @param partType The part type.
      * @param target The position that is targeted by the given part.
      * @param state The current state of the given part.
-     * @param properties The new properties.
+     * @param properties The new PROPERTY.
      */
     public <P extends IPartType<P, S>, S extends IPartState<P>> void setProperties(P partType, PartTarget target, S state, IAspectProperties properties);
 
     /**
-     * @return The default properties for this aspect.
+     * @return The default PROPERTY for this aspect.
      */
     public IAspectProperties getDefaultProperties();
 
     /**
-     * These are the properties that are supported for this aspect.
-     * It is possible that some deprecated properties are available inside the retrieved properties, so use
+     * These are the PROPERTY that are supported for this aspect.
+     * It is possible that some deprecated PROPERTY are available inside the retrieved PROPERTY, so use
      * this to iterate over the values.
      * @return The types that are available for this aspect.
      */
     public Collection<IAspectPropertyTypeInstance> getPropertyTypes();
 
     /**
-     * This will only be called if this aspect has properties.
-     * @return The gui container provider for the gui to configure the properties.
+     * This will only be called if this aspect has PROPERTY.
+     * @return The gui container provider for the gui to configure the PROPERTY.
      */
     public IGuiContainerProvider getPropertiesGuiProvider();
 

@@ -20,7 +20,7 @@ public interface IPartContainer {
     /**
      * @return The parts inside this container.
      */
-    public Map<EnumFacing, IPartType<?, ?>> getParts();
+    public Map<EnumFacing, IPartType<?, ?>> getPartTypes();
 
     /**
      * @return If this container has at least one part.

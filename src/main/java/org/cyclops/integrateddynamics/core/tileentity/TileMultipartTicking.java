@@ -8,12 +8,16 @@ import lombok.Data;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.experimental.Delegate;
+import mcmultipart.multipart.IMultipartContainer;
+import mcmultipart.multipart.MultipartContainer;
+import mcmultipart.util.IWorldLocation;
 import net.minecraft.block.Block;
 import net.minecraft.block.state.IBlockState;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.nbt.NBTTagList;
+import net.minecraft.util.BlockPos;
 import net.minecraft.util.EnumFacing;
 import net.minecraft.world.World;
 import net.minecraftforge.common.property.IExtendedBlockState;
@@ -40,6 +44,7 @@ import org.cyclops.integrateddynamics.block.BlockCable;
 import org.cyclops.integrateddynamics.core.block.cable.CableNetworkComponent;
 import org.cyclops.integrateddynamics.core.network.event.UnknownPartEvent;
 import org.cyclops.integrateddynamics.core.part.PartTypes;
+import org.cyclops.integrateddynamics.modcompat.mcmultipart.ExtendedMultipartContainer;
 
 import javax.annotation.Nullable;
 import java.util.List;
@@ -50,7 +55,7 @@ import java.util.Map;
  * @author Ruben Taelman
  */
 public class TileMultipartTicking extends CyclopsTileEntity implements CyclopsTileEntity.ITickingTile,
-        IPartContainer, ITileCableNetwork, ITileCableFacadeable {
+        IPartContainer, ITileCableNetwork, ITileCableFacadeable, IMultipartContainer {
 
     private final Map<EnumFacing, PartStateHolder<?, ?>> partData = Maps.newHashMap();
     @Delegate
@@ -69,6 +74,13 @@ public class TileMultipartTicking extends CyclopsTileEntity implements CyclopsTi
     @Getter
     @Setter
     private IPartNetwork network;
+
+    @Delegate(types = {IMultipartContainer.class})
+    private final ExtendedMultipartContainer multipartContainer;
+
+    public TileMultipartTicking() {
+        this.multipartContainer = new ExtendedMultipartContainer(new WorldLocation(), this, true);
+    }
 
     @Override
     public void writeToNBT(NBTTagCompound tag) {this.markDirty();
@@ -90,6 +102,9 @@ public class TileMultipartTicking extends CyclopsTileEntity implements CyclopsTi
             }
         }
         tag.setTag("parts", partList);
+        NBTTagCompound mcmultiparts = new NBTTagCompound();
+        this.multipartContainer.writeToNBT(mcmultiparts);
+        tag.setTag("mcmultiparts", mcmultiparts);
     }
 
     protected IPartType validatePartType(String partTypeName, IPartType partType) {
@@ -125,6 +140,9 @@ public class TileMultipartTicking extends CyclopsTileEntity implements CyclopsTi
                         partTypeName, getPosition()));
             }
         }
+        if(tag.hasKey("mcmultiparts", MinecraftHelpers.NBTTag_Types.NBTTagCompound.ordinal())) {
+            this.multipartContainer.readFromNBT(tag.getCompoundTag("mcmultiparts"));
+        }
         super.readFromNBT(tag);
     }
 
@@ -151,7 +169,7 @@ public class TileMultipartTicking extends CyclopsTileEntity implements CyclopsTi
     }
 
     @Override
-    public Map<EnumFacing, IPartType<?, ?>> getParts() {
+    public Map<EnumFacing, IPartType<?, ?>> getPartTypes() {
         return Maps.transformValues(partData, new Function<PartStateHolder<?, ?>, IPartType<?, ?>>() {
             @Nullable
             @Override
@@ -341,6 +359,8 @@ public class TileMultipartTicking extends CyclopsTileEntity implements CyclopsTi
                 }
             }
         }
+
+        multipartContainer.updateParts();
     }
 
     protected void updateRedstoneInfo(EnumFacing side) {
@@ -469,6 +489,26 @@ public class TileMultipartTicking extends CyclopsTileEntity implements CyclopsTi
     @Override
     public void reconnect(EnumFacing side) {
         forceDisconnected.remove(side.ordinal());
+    }
+
+    /**
+     * @return The multipart container
+     */
+    public MultipartContainer getPartContainer() {
+        return this.multipartContainer;
+    }
+
+    protected class WorldLocation implements IWorldLocation {
+
+        @Override
+        public World getWorldIn() {
+            return getWorld();
+        }
+
+        @Override
+        public BlockPos getPosIn() {
+            return getPos();
+        }
     }
 
     @Data

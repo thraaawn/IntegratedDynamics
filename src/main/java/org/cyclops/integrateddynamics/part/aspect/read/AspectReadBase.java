@@ -56,7 +56,7 @@ public abstract class AspectReadBase<V extends IValue, T extends IValueType<V>> 
     /**
      * This is only called lazy.
      * @param target The target to get the value for.
-     * @param properties The optional properties for this aspect.
+     * @param properties The optional PROPERTY for this aspect.
      * @return The value that will be inserted into a variable so it can be used elsewhere.
      */
     protected abstract V getValue(PartTarget target, IAspectProperties properties);

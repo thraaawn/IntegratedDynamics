@@ -1,5 +1,6 @@
 package org.cyclops.integrateddynamics.client.render.tileentity;
 
+import mcmultipart.client.multipart.MultipartContainerSpecialRenderer;
 import net.minecraft.block.state.IBlockState;
 import net.minecraft.client.renderer.GlStateManager;
 import net.minecraft.util.EnumFacing;
@@ -28,17 +29,18 @@ public class RenderCable extends RenderTileEntityBakedModel<TileMultipartTicking
             GlStateManager.scale(4.0F, 4.0F, 1.0F);
             GlStateManager.translate(0.0625F, 0.0625F, 0.0625F);
             GlStateManager.matrixMode(5888);
-        } else if(getTexture() != null) {
+        } else if (getTexture() != null) {
             this.bindTexture(getTexture());
         }
 
-        for(Map.Entry<EnumFacing, IPartType<?, ?>> entry : tile.getParts().entrySet()) {
+        for (Map.Entry<EnumFacing, IPartType<?, ?>> entry : tile.getPartTypes().entrySet()) {
             tempBlockState = entry.getValue().getBlockState(tile, x, y, z, partialTick, destroyStage, entry.getKey());
             super.renderTileEntityAt(tile, x, y, z, partialTick, destroyStage);
-            for(IPartOverlayRenderer renderer: PartOverlayRenderers.REGISTRY.getRenderers(entry.getValue())) {
+            for (IPartOverlayRenderer renderer : PartOverlayRenderers.REGISTRY.getRenderers(entry.getValue())) {
                 renderer.renderPartOverlay(tile, x, y, z, partialTick, destroyStage, entry.getKey(), entry.getValue(), rendererDispatcher);
             }
         }
+        MultipartContainerSpecialRenderer.renderMultipartContainerAt(tile.getPartContainer(), x, y, z, partialTick, destroyStage, rendererDispatcher);
     }
 
     @Override

@@ -72,7 +72,7 @@ public interface IPartType<P extends IPartType<P, S>, S extends IPartState<P>> e
     public void onInit(IInitListener.Step initStep);
 
     /**
-     * Write the properties of this part to NBT.
+     * Write the PROPERTY of this part to NBT.
      * An identificator for this part is not required, this is written somewhere else.
      * @param tag The tag to write to. This tag is guaranteed to be empty.
      * @param partState The state of this part.
@@ -80,7 +80,7 @@ public interface IPartType<P extends IPartType<P, S>, S extends IPartState<P>> e
     public void toNBT(NBTTagCompound tag, S partState);
 
     /**
-     * Read the properties of this part from nbt.
+     * Read the PROPERTY of this part from nbt.
      * This tag is guaranteed to only contain data for this part.
      * @param tag The tag to read from.
      * @return The state of this part.

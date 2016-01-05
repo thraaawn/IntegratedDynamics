@@ -165,7 +165,7 @@ public abstract class GuiMultipartAspects<P extends IPartType<P, S> & IGuiContai
                 }
                 drawAdditionalElementInfoForeground(container, i, container.getVisibleElement(i), mouseX, mouseY);
 
-                // Optional aspect properties tooltip
+                // Optional aspect PROPERTY tooltip
                 IAspect aspect = container.getVisibleElement(i);
                 if(aspectPropertyButtons.containsKey(aspect)) {
                     GuiButtonText button = aspectPropertyButtons.get(aspect);

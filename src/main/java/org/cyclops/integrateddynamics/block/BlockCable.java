@@ -5,6 +5,7 @@ import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 import lombok.Setter;
 import lombok.experimental.Delegate;
+import mcmultipart.multipart.PartState;
 import net.minecraft.block.Block;
 import net.minecraft.block.material.Material;
 import net.minecraft.block.properties.PropertyBool;
@@ -19,6 +20,7 @@ import net.minecraft.item.ItemStack;
 import net.minecraft.util.*;
 import net.minecraft.world.IBlockAccess;
 import net.minecraft.world.World;
+import net.minecraft.world.WorldServer;
 import net.minecraftforge.common.property.IExtendedBlockState;
 import net.minecraftforge.common.property.IUnlistedProperty;
 import net.minecraftforge.common.property.Properties;
@@ -45,7 +47,6 @@ import org.cyclops.integrateddynamics.api.part.IPartContainerFacade;
 import org.cyclops.integrateddynamics.api.part.IPartType;
 import org.cyclops.integrateddynamics.api.path.ICablePathElement;
 import org.cyclops.integrateddynamics.client.model.CableModel;
-import org.cyclops.integrateddynamics.core.block.CollidableComponent;
 import org.cyclops.integrateddynamics.core.block.ICollidable;
 import org.cyclops.integrateddynamics.core.block.ICollidableParent;
 import org.cyclops.integrateddynamics.core.block.cable.CableNetworkFacadeableComponent;
@@ -55,6 +56,8 @@ import org.cyclops.integrateddynamics.core.path.CablePathElement;
 import org.cyclops.integrateddynamics.core.tileentity.TileMultipartTicking;
 import org.cyclops.integrateddynamics.item.ItemBlockCable;
 import org.cyclops.integrateddynamics.item.ItemFacade;
+import org.cyclops.integrateddynamics.modcompat.mcmultipart.MultipartBlockComponent;
+import org.cyclops.integrateddynamics.modcompat.mcmultipart.MultipartCollidableComponent;
 
 import javax.annotation.Nullable;
 import java.util.*;
@@ -88,6 +91,8 @@ public class BlockCable extends ConfigurableBlockContainer implements ICableNetw
             PART_RENDERPOSITIONS[side.ordinal()] = new UnlistedProperty<>("partRenderPosition-" + side.getName(), IPartType.RenderPosition.class);
         }
     }
+    @BlockProperty
+    public static final IUnlistedProperty<List<PartState>> MCMULTIPARTS = MultipartBlockComponent.PROPERTY;
 
     // Collision boxes
     private static final float[][] CABLE_COLLISION_BOXES = {
@@ -178,10 +183,11 @@ public class BlockCable extends ConfigurableBlockContainer implements ICableNetw
         COLLIDABLE_COMPONENTS.add(PARTS_COMPONENT);
     }
     @Delegate
-    private ICollidable collidableComponent = new CollidableComponent<EnumFacing, BlockCable>(this, COLLIDABLE_COMPONENTS);
+    private ICollidable collidableComponent = new MultipartCollidableComponent<EnumFacing, BlockCable>(this, COLLIDABLE_COMPONENTS);
     //@Delegate// <- Lombok can't handle delegations with generics, so we'll have to do it manually...
     private CableNetworkFacadeableComponent<BlockCable> cableNetworkComponent = new CableNetworkFacadeableComponent<>(this);
     private NetworkElementProviderComponent<IPartNetwork> networkElementProviderComponent = new NetworkElementProviderComponent<>(this);
+    private MultipartBlockComponent multipartBlockComponent = new MultipartBlockComponent();
 
     private static BlockCable _instance = null;
 
@@ -213,13 +219,20 @@ public class BlockCable extends ConfigurableBlockContainer implements ICableNetw
         }
     }
 
+    protected MultipartBlockComponent getBlockComponent() {
+        return this.multipartBlockComponent;
+    }
+
     @Override
     public IBlockState getExtendedState(IBlockState state, IBlockAccess world, BlockPos pos) {
         TileMultipartTicking tile = TileHelpers.getSafeTile(world, pos, TileMultipartTicking.class);
+        IExtendedBlockState extendedBlockState;
         if(tile != null) {
-            return tile.getConnectionState();
+            extendedBlockState = tile.getConnectionState();
+        } else {
+            extendedBlockState = (IExtendedBlockState) getDefaultState();
         }
-        return getDefaultState();
+        return multipartBlockComponent.applyExtendedState(extendedBlockState, world, pos);
     }
 
     protected boolean hasPart(IBlockAccess world, BlockPos pos, EnumFacing side) {
@@ -356,6 +369,8 @@ public class BlockCable extends ConfigurableBlockContainer implements ICableNetw
                         return true;
                     }
                 }
+            } else {
+                return multipartBlockComponent.onBlockActivated(world, pos, state, player , side, hitX, hitY, hitZ);
             }
         }
         return super.onBlockActivated(world, pos, state, player , side, hitX, hitY, hitZ);
@@ -380,16 +395,30 @@ public class BlockCable extends ConfigurableBlockContainer implements ICableNetw
 
     @Override
     public ItemStack getPickBlock(MovingObjectPosition target, World world, BlockPos pos, EntityPlayer player) {
-        return new ItemStack(getItem(world, pos), 1, getDamageValue(world, pos));
+        // TODO: check if targeting part
+        ItemStack itemStack = multipartBlockComponent.getPickBlock(target, world, pos, player);
+        if(itemStack == null) {
+            itemStack = new ItemStack(getItem(world, pos), 1, getDamageValue(world, pos));;
+        }
+        return itemStack;
     }
 
     @Override
     protected void onPreBlockDestroyed(World world, BlockPos pos) {
+        multipartBlockComponent.onPreBlockDestroyed(world, pos);
         networkElementProviderComponent.onPreBlockDestroyed(getNetwork(world, pos), world, pos);
         if(isRealCable(world, pos)) {
             cableNetworkComponent.onPreBlockDestroyed(world, pos);
         }
         super.onPreBlockDestroyed(world, pos);
+    }
+
+    @Override
+    public List<ItemStack> getDrops(IBlockAccess world, BlockPos pos, IBlockState blockState, int fortune) {
+        List<ItemStack> allDrops = Lists.newLinkedList();
+        allDrops.addAll(multipartBlockComponent.getDrops(world, pos));
+        allDrops.addAll(super.getDrops(world, pos, blockState, fortune));
+        return allDrops;
     }
 
     @Override
@@ -401,7 +430,7 @@ public class BlockCable extends ConfigurableBlockContainer implements ICableNetw
     @Override
     public Collection<INetworkElement> createNetworkElements(World world, BlockPos blockPos) {
         Set<INetworkElement> sidedElements = Sets.newHashSet();
-        for(Map.Entry<EnumFacing, IPartType<?, ?>> entry : getPartContainer(world, blockPos).getParts().entrySet()) {
+        for(Map.Entry<EnumFacing, IPartType<?, ?>> entry : getPartContainer(world, blockPos).getPartTypes().entrySet()) {
             sidedElements.add(entry.getValue().createNetworkElement(this, DimPos.of(world, blockPos), entry.getKey()));
         }
         return sidedElements;
@@ -410,6 +439,52 @@ public class BlockCable extends ConfigurableBlockContainer implements ICableNetw
     @Override
     public IPartContainer getPartContainer(IBlockAccess world, BlockPos pos) {
         return TileHelpers.getSafeTile(world, pos, IPartContainer.class);
+    }
+
+    /* --------------- MCMultiPart-specific calls --------------- */
+
+    @Override
+    public boolean removedByPlayer(World world, BlockPos pos, EntityPlayer player, boolean willHarvest) {
+        return multipartBlockComponent.removedByPlayer(world, pos, player, willHarvest) && super.removedByPlayer(world, pos, player, willHarvest);
+    }
+
+    @Override
+    public float getPlayerRelativeBlockHardness(EntityPlayer playerIn, World worldIn, BlockPos pos) {
+        return Math.max(
+                super.getPlayerRelativeBlockHardness(playerIn, worldIn, pos),
+                multipartBlockComponent.getPlayerRelativeBlockHardness(playerIn, worldIn, pos)
+        );
+    }
+
+    @Override
+    public void onBlockClicked(World worldIn, BlockPos pos, EntityPlayer playerIn) {
+        multipartBlockComponent.onBlockClicked(worldIn, pos, playerIn);
+        super.onBlockClicked(worldIn, pos, playerIn);
+    }
+
+    @Override
+    public void onNeighborChange(IBlockAccess world, BlockPos pos, BlockPos neighbor) {
+        super.onNeighborChange(world, pos, neighbor);
+        multipartBlockComponent.onNeighborChange(world, pos, neighbor);
+    }
+
+    @SideOnly(Side.CLIENT)
+    @Override
+    public void randomDisplayTick(World worldIn, BlockPos pos, IBlockState state, Random rand) {
+        super.randomDisplayTick(worldIn, pos, state, rand);
+        multipartBlockComponent.randomDisplayTick(worldIn, pos, state, rand);
+    }
+
+    @SideOnly(Side.CLIENT)
+    @Override
+    public boolean addDestroyEffects(World world, BlockPos pos, EffectRenderer effectRenderer) {
+        return multipartBlockComponent.addDestroyEffects(world, pos, effectRenderer) || super.addDestroyEffects(world, pos, effectRenderer);
+    }
+
+    @Override
+    public boolean addLandingEffects(WorldServer worldObj, BlockPos blockPosition, IBlockState iblockstate, EntityLivingBase entity, int numberOfParticles) {
+        return multipartBlockComponent.addLandingEffects(worldObj, blockPosition, iblockstate, entity, numberOfParticles) ||
+                super.addLandingEffects(worldObj, blockPosition, iblockstate, entity, numberOfParticles);
     }
 
     /* --------------- Start ICollidable and rendering --------------- */
@@ -470,7 +545,8 @@ public class BlockCable extends ConfigurableBlockContainer implements ICableNetw
             RenderHelpers.addBlockHitEffects(effectRenderer, world, blockState, blockPos, target.sideHit);
             return true;
         } else {
-            return super.addHitEffects(world, target, effectRenderer);
+            return multipartBlockComponent.addHitEffects(world, target, effectRenderer) ||
+                    super.addHitEffects(world, target, effectRenderer);
         }
     }
 
@@ -480,12 +556,25 @@ public class BlockCable extends ConfigurableBlockContainer implements ICableNetw
         if(hasFacade(world, pos)) {
             return true;
         }
+        boolean isSideSolid;
         if(hasPart(world, pos, side)) {
             IPartContainer partContainer = getPartContainer(world, pos);
             IPartType partType = partContainer.getPart(side);
-            return partType.isSolid(partContainer.getPartState(side));
+            isSideSolid = partType.isSolid(partContainer.getPartState(side));
+        } else {
+            isSideSolid = false;
         }
-        return super.isSideSolid(world, pos, side);
+        return isSideSolid ||
+                multipartBlockComponent.isSideSolid(world, pos, side) ||
+                super.isSideSolid(world, pos, side);
+    }
+
+    @Override
+    public boolean canPlaceTorchOnTop(IBlockAccess world, BlockPos pos) {
+        if(!super.canPlaceTorchOnTop(world, pos)) {
+            return multipartBlockComponent.canPlaceTorchOnTop(world, pos);
+        }
+        return true;
     }
 
     @Override
@@ -530,6 +619,11 @@ public class BlockCable extends ConfigurableBlockContainer implements ICableNetw
     @Override
     public MovingObjectPosition collisionRayTraceParent(World world, BlockPos pos, Vec3 origin, Vec3 direction) {
         return super.collisionRayTrace(world, pos, origin, direction);
+    }
+
+    @Override
+    public boolean canRenderInLayer(EnumWorldBlockLayer layer) {
+        return true; // Because of MCMP
     }
 
     /* --------------- Start IDynamicRedstoneBlock --------------- */
@@ -583,17 +677,22 @@ public class BlockCable extends ConfigurableBlockContainer implements ICableNetw
 
     @Override
     public boolean canConnectRedstone(IBlockAccess world, BlockPos pos, EnumFacing side) {
-        return getRedstoneLevel(world, pos, side.getOpposite()) >= 0 || isAllowRedstoneInput(world, pos, side.getOpposite());
+        return getRedstoneLevel(world, pos, side.getOpposite()) >= 0
+                || isAllowRedstoneInput(world, pos, side.getOpposite())
+                || multipartBlockComponent.canConnectRedstone(world, pos, side);
     }
 
     @Override
     public int getStrongPower(IBlockAccess world, BlockPos pos, IBlockState state, EnumFacing side) {
-        return 0;
+        return multipartBlockComponent.getStrongPower(world, pos, state, side);
     }
 
     @Override
     public int getWeakPower(IBlockAccess world, BlockPos pos, IBlockState state, EnumFacing side) {
-        return getRedstoneLevel(world, pos, side.getOpposite());
+        return Math.max(
+                getRedstoneLevel(world, pos, side.getOpposite()),
+                multipartBlockComponent.getWeakPower(world, pos, state, side)
+        );
     }
 
     /* --------------- Start IDynamicLightBlock --------------- */
@@ -609,10 +708,11 @@ public class BlockCable extends ConfigurableBlockContainer implements ICableNetw
     @Override
     public int getLightLevel(IBlockAccess world, BlockPos pos, EnumFacing side) {
         TileMultipartTicking tile = TileHelpers.getSafeTile(world, pos, TileMultipartTicking.class);
+        int light = 0;
         if(tile != null) {
-            return tile.getLightLevel(side);
+            light = tile.getLightLevel(side);
         }
-        return 0;
+        return Math.max(light, multipartBlockComponent.getLightValue(world, pos));
     }
 
     @Override
@@ -699,6 +799,7 @@ public class BlockCable extends ConfigurableBlockContainer implements ICableNetw
 
     @Override
     public void onNeighborBlockChange(World world, BlockPos pos, IBlockState state, Block neighborBlock) {
+        multipartBlockComponent.onNeighborBlockChange(world, pos, state, neighborBlock);
         super.onNeighborBlockChange(world, pos, state, neighborBlock);
         networkElementProviderComponent.onBlockNeighborChange(getNetwork(world, pos), world, pos, neighborBlock);
     }

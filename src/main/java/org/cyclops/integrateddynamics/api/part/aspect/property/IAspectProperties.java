@@ -41,7 +41,7 @@ public interface IAspectProperties extends INBTSerializable {
     public <T extends IValueType<V>, V extends IValue> void setValue(IAspectPropertyTypeInstance<T, V> type, V value);
 
     /**
-     * @return A deep copy of the properties.
+     * @return A deep copy of the PROPERTY.
      */
     @SuppressWarnings({"CloneDoesntCallSuperClone", "deprecation"})
     public IAspectProperties clone();

@@ -26,7 +26,7 @@ public class AspectProperties implements IAspectProperties {
 
     /**
      * Make a new instance.
-     * @param propertyTypes The types these properties will have. These will be used to initialize the default values.
+     * @param propertyTypes The types these PROPERTY will have. These will be used to initialize the default values.
      */
     public AspectProperties(Collection<IAspectPropertyTypeInstance> propertyTypes) {
         for(IAspectPropertyTypeInstance propertyType : propertyTypes) {

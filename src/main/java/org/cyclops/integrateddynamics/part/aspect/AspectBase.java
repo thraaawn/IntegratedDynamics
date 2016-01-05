@@ -105,8 +105,8 @@ public abstract class AspectBase<V extends IValue, T extends IValueType<V>> impl
     }
 
     /**
-     * Creates the default properties for this aspect, only called once.
-     * @return The default properties.
+     * Creates the default PROPERTY for this aspect, only called once.
+     * @return The default PROPERTY.
      */
     protected IAspectProperties createDefaultProperties() {
         return null;

@@ -30,7 +30,7 @@ sourceCompatibility = 1.7
 targetCompatibility = 1.7
 
 def loadProperties() {
-    // Config file with custom properties
+    // Config file with custom PROPERTY
     ext.configFile = file "build.properties"
     configFile.withReader {
         def prop = new Properties()
