@@ -10,7 +10,6 @@ import net.minecraft.block.Block;
 import net.minecraft.block.SoundType;
 import net.minecraft.block.properties.IProperty;
 import net.minecraft.block.state.IBlockState;
-import net.minecraft.creativetab.CreativeTabs;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.EntityAgeable;
 import net.minecraft.entity.EntityList;
@@ -36,7 +35,6 @@ import net.minecraft.nbt.NBTTagLong;
 import net.minecraft.nbt.NBTTagString;
 import net.minecraft.tileentity.TileEntityFurnace;
 import net.minecraft.util.DamageSource;
-import net.minecraft.util.NonNullList;
 import net.minecraft.util.ResourceLocation;
 import net.minecraft.util.StringUtils;
 import net.minecraft.util.math.AxisAlignedBB;
@@ -55,6 +53,7 @@ import net.minecraftforge.oredict.OreDictionary;
 import org.apache.commons.lang3.tuple.Pair;
 import org.apache.commons.lang3.tuple.Triple;
 import org.cyclops.cyclopscore.helper.BlockHelpers;
+import org.cyclops.cyclopscore.helper.ItemStackHelpers;
 import org.cyclops.cyclopscore.helper.L10NHelpers;
 import org.cyclops.cyclopscore.helper.MinecraftHelpers;
 import org.cyclops.integrateddynamics.IntegratedDynamics;
@@ -1499,9 +1498,7 @@ public final class Operators {
                     if (!StringUtils.isNullOrEmpty(a.getRawValue())) {
                         for (ItemStack itemStack : OreDictionary.getOres(a.getRawValue())) {
                             if (itemStack.getMetadata() == OreDictionary.WILDCARD_VALUE) {
-                                NonNullList<ItemStack> subItems = NonNullList.create();
-                                itemStack.getItem().getSubItems(CreativeTabs.SEARCH, subItems);
-                                for (ItemStack subItem : subItems) {
+                                for (ItemStack subItem : ItemStackHelpers.getSubItems(itemStack)) {
                                     builder.add(ValueObjectTypeItemStack.ValueItemStack.of(subItem));
                                 }
                             } else {
