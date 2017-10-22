@@ -27,6 +27,7 @@ public class ValueTypeListProxyFactories {
     public static ValueTypeListProxyNBTFactory<ValueObjectTypeItemStack, ValueObjectTypeItemStack.ValueItemStack, ValueTypeListProxyEntityInventory> ENTITY_INVENTORY;
     public static ValueTypeListProxyNBTFactory<ValueObjectTypeFluidStack, ValueObjectTypeFluidStack.ValueFluidStack, ValueTypeListProxyPositionedTankFluidStacks> POSITIONED_TANK_FLUIDSTACKS;
     public static ValueTypeListProxyNBTFactory<ValueTypeInteger, ValueTypeInteger.ValueInteger, ValueTypeListProxyPositionedTankCapacities> POSITIONED_TANK_CAPACITIES;
+    public static ValueTypeListProxyNBTFactory<ValueObjectTypeRecipe, ValueObjectTypeRecipe.ValueRecipe, ValueTypeListProxyPositionedRecipes> POSITIONED_RECIPES;
     public static ValueTypeListProxyAppend.Factory APPEND;
     public static ValueTypeListProxyConcat.Factory CONCAT;
     public static ValueTypeListProxyLazyBuilt.Factory LAZY_BUILT;
@@ -45,6 +46,7 @@ public class ValueTypeListProxyFactories {
             ENTITY_INVENTORY = REGISTRY.register(new ValueTypeListProxyNBTFactory<>("entityInventory", ValueTypeListProxyEntityInventory.class));
             POSITIONED_TANK_FLUIDSTACKS = REGISTRY.register(new ValueTypeListProxyNBTFactory<>("positionedTankFluidstacks", ValueTypeListProxyPositionedTankFluidStacks.class));
             POSITIONED_TANK_CAPACITIES = REGISTRY.register(new ValueTypeListProxyNBTFactory<>("positionedTankCapacities", ValueTypeListProxyPositionedTankCapacities.class));
+            POSITIONED_RECIPES = REGISTRY.register(new ValueTypeListProxyNBTFactory<>("positionedRecipes", ValueTypeListProxyPositionedRecipes.class));
             APPEND = REGISTRY.register(new ValueTypeListProxyAppend.Factory());
             CONCAT = REGISTRY.register(new ValueTypeListProxyConcat.Factory());
             LAZY_BUILT = REGISTRY.register(new ValueTypeListProxyLazyBuilt.Factory());

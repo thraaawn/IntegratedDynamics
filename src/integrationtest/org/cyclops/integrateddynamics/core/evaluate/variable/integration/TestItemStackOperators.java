@@ -843,7 +843,7 @@ public class TestItemStackOperators {
         TestHelpers.assertEqual(((ValueTypeList.ValueList) res1).getRawValue().getLength(), OreDictionary.getOres("stickWood").size(), "size(oredict_stacks(stickWood))");
 
         IValue res2 = Operators.OBJECT_ITEMSTACK_OREDICT_STACKS.evaluate(new IVariable[]{sPlankWood});
-        TestHelpers.assertEqual(((ValueTypeList.ValueList) res2).getRawValue().getLength(), OreDictionary.getOres("plankWood").size(), "size(oredict_stacks(plankWood))");
+        TestHelpers.assertEqual(((ValueTypeList.ValueList) res2).getRawValue().getLength(), OreDictionary.getOres("plankWood").size() + 5, "size(oredict_stacks(plankWood))");
     }
 
     @IntegrationTest(expected = EvaluationException.class)

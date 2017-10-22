@@ -2,6 +2,7 @@ package org.cyclops.integrateddynamics;
 
 import net.minecraftforge.common.capabilities.Capability;
 import net.minecraftforge.common.capabilities.CapabilityInject;
+import org.cyclops.commoncapabilities.api.capability.recipehandler.IRecipeHandler;
 import org.cyclops.commoncapabilities.api.capability.temperature.ITemperature;
 import org.cyclops.commoncapabilities.api.capability.work.IWorker;
 import org.cyclops.commoncapabilities.api.capability.wrench.IWrench;
@@ -19,4 +20,7 @@ public class Capabilities {
 
     @CapabilityInject(ITemperature.class)
     public static Capability<ITemperature> TEMPERATURE = null;
+
+    @CapabilityInject(IRecipeHandler.class)
+    public static Capability<IRecipeHandler> RECIPE_HANDLER = null;
 }
