@@ -156,6 +156,11 @@ public class OperatorLPElement implements ILogicProgrammerElement<RenderPattern,
     }
 
     @Override
+    public int getItemStackSizeLimit() {
+        return 1;
+    }
+
+    @Override
     public boolean isFocused(RenderPattern subGui) {
         return focused;
     }

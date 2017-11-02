@@ -44,7 +44,7 @@ public class ValueObjectTypeItemStack extends ValueObjectTypeBase<ValueObjectTyp
     @Override
     public String toCompactString(ValueItemStack value) {
         ItemStack itemStack = value.getRawValue();
-        return !itemStack.isEmpty() ? itemStack.getDisplayName() : "";
+        return !itemStack.isEmpty() ? (itemStack.getDisplayName() + (itemStack.getCount() > 1 ? " (" + itemStack.getCount() + ")" : "")) : "";
     }
 
     @Override
